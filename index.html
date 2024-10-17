@@ -45,17 +45,59 @@
     <input type="text" id="myInput" placeholder="Enter text here...">
   </div>
   <div class="button-group">
-    <button onclick="buttonClicked()">Submit</button>
+    <button onclick="buttonClicked()">确定</button>
   </div>
 </div>
 
 <script>
+  function crc32Ieee(random) {
+  try {
+    let crc = 0xFFFFFFFF;
+    let bytes = utf8Encode(random.toString());
+    for (let b of bytes) {
+      crc ^= b;
+      for (let i = 0; i < 8; i++) {
+        crc = (crc >>> 1) ^ ((crc & 1) !== 0 ? 0xEDB88320 : 0);
+      }
+    }
+    crc ^= 0xFFFFFFFF;
+    return Math.floor(((crc & 0xFFFFFFFF) + 9999) / 10000).toString();
+  } catch (e) {
+    return "加密过程错误！";
+  }
+}
+
+function utf8Encode(str) {
+  let bytes = [];
+  for (let i = 0; i < str.length; i++) {
+    let code = str.charCodeAt(i);
+    if (code < 0x80) {
+      bytes.push(code);
+    } else if (code < 0x800) {
+      bytes.push(0xC0 | (code >> 6));
+      bytes.push(0x80 | (code & 0x3F));
+    } else if (code < 0xD800 || code >= 0xE000) {
+      bytes.push(0xE0 | (code >> 12));
+      bytes.push(0x80 | ((code >> 6) & 0x3F));
+      bytes.push(0x80 | (code & 0x3F));
+    } else {
+      // This is a surrogate pair, so we'll reencode it as four bytes.
+      i++;
+      code = 0x10000 + (((code & 0x3FF) << 10) | (str.charCodeAt(i) & 0x3FF));
+      bytes.push(0xF0 | (code >> 18));
+      bytes.push(0x80 | ((code >> 12) & 0x3F));
+      bytes.push(0x80 | ((code >> 6) & 0x3F));
+      bytes.push(0x80 | (code & 0x3F));
+    }
+  }
+  return bytes;
+}
 function buttonClicked() {
   // Get the value from the input box
   var inputValue = document.getElementById('myInput').value;
   
-  // Encode the input value using Base64
-  var encodedValue = btoa(inputValue);
+  // Encode the input value using CRC32 IEEE
+  var encodedValue = crc32Ieee(inputValue);
   
   // Display the encoded value in an alert
   alert('Encoded value: ' + encodedValue);
