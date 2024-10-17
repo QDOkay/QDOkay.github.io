@@ -54,8 +54,11 @@ function buttonClicked() {
   // Get the value from the input box
   var inputValue = document.getElementById('myInput').value;
   
-  // You can do something with the input value here
-  alert('You entered: ' + inputValue);
+  // Encode the input value using Base64
+  var encodedValue = btoa(inputValue);
+  
+  // Display the encoded value in an alert
+  alert('Encoded value: ' + encodedValue);
 }
 </script>
 
